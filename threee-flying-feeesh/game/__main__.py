@@ -32,6 +32,42 @@ PROJECTION_CENTER_X = SCREEN_WIDTH * 0.5 # x center of the canvas
 PROJECTION_CENTER_Y = SCREEN_HEIGHT * 0.5 # y center of the canvas
 particles = [] # Store every "particle" in this array
 
+
+class Shape:
+    """ Generic base shape class """
+    def __init__(self, x, y, width, height, angle, delta_x, delta_y,
+                 delta_angle, color):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.angle = angle
+        self.delta_x = delta_x
+        self.delta_y = delta_y
+        self.delta_angle = delta_angle
+        self.color = color
+        self.shape_list = None
+
+    def move(self):
+        self.x += self.delta_x
+        self.y += self.delta_y
+        self.angle += self.delta_angle
+        if self.x < 0 and self.delta_x < 0:
+            self.delta_x *= -1
+        if self.y < 0 and self.delta_y < 0:
+            self.delta_y *= -1
+        if self.x > SCREEN_WIDTH and self.delta_x > 0:
+            self.delta_x *= -1
+        if self.y > SCREEN_HEIGHT and self.delta_y > 0:
+            self.delta_y *= -1
+
+    def draw(self):
+        self.shape_list.center_x = self.x
+        self.shape_list.center_y = self.y
+        # self.shape_list.angle = self.angle
+        self.shape_list.draw()
+
+
 class Particle:
     def __init__(self, direction=1):
         self.x = 0
