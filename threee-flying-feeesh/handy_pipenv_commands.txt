@@ -1,0 +1,9 @@
+py.exe -m pip install --user pipenv
+py.exe -m pipenv --python 3.8
+py.exe -m pipenv install arcade
+py.exe -m pipenv uninstall arcade
+py.exe -m pipenv install arcade==2.4a5
+py.exe -m pipenv --where
+py.exe -m pipenv shell
+py.exe -m pipenv run pip freeze >requirements.txt
+py.exe -m pipenv run start
