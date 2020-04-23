@@ -9,8 +9,9 @@ If Python and Arcade are installed, this example can be run from the command lin
 python -m arcade.examples.array_backed_grid_buffered
 """
 import arcade
-import random
 import math
+import random
+import timeit
 
 # Set how many rows and columns we will have
 ROW_COUNT = 3**3
@@ -24,7 +25,7 @@ SCREEN_HEIGHT = 600
 SCREEN_TITLE = "Threee Flying Feeesh presents Teeetris"
 GLOBE_RADIUS = (SCREEN_WIDTH * ( 1/3 ))
 PARTICLE_RADIUS = 10
-PARTICLE_COUNT = 100
+PARTICLE_COUNT = 300
 SPEED = 0.1
 
 PERSPECTIVE = SCREEN_WIDTH * 0.8 # The field of view of our 3D scene
@@ -68,10 +69,26 @@ class Shape:
         self.shape_list.draw()
 
 
-class Particle:
-    def __init__(self, direction=1):
-        self.x = 0
-        self.y = 0
+class Particle(Shape):
+    def __init__(self,
+                x=0,
+                y=0,
+                width=0,
+                height=0,
+                angle=0,
+                delta_x=0,
+                delta_y=0,
+                delta_angle=0,
+                color=arcade.color.WHITE):
+        super().__init__(x, y, width, height, angle, delta_x, delta_y,
+                    delta_angle, color)
+        shape = arcade.create_ellipse_filled(0, 0,
+                                             self.width, self.height,
+                                             self.color, self.angle,
+                                             num_segments=60)
+        self.shape_list = arcade.ShapeElementList()
+        self.shape_list.append(shape)
+        # enough of the generic stuff let's get freaky
         self.z = 0
         self.theta = random.random() * 2 * math.pi
         self.phi = math.acos((random.random() * 2) - 1)
@@ -79,12 +96,15 @@ class Particle:
         self.y_projected = 0 # y coordinate on the 2D world
         self.scale_projected = 0 # Scale of the element on the 2D world (further = smaller)
         self.radius = (PARTICLE_RADIUS * random.random()) + 5
-        self.direction = direction
+        self.direction = 1
         # pick a random colour
         p = range(128, 256)
         rc = random.choice
         self.colour = (rc(p), rc(p), rc(p))
 
+
+    def change_direction(self):
+        self.direction *= -1
 
     # Project our element from its 3D world to the 2D canvas
     def project(self):
@@ -128,17 +148,26 @@ class MyGame(arcade.Window):
         Set up the application.
         """
         super().__init__(width, height, title)
-        self.direction = 1
+        self.particles_list = None
+        # some interesting debugging stuff
+        self.processing_time = 0
+        self.draw_time = 0
+        self.frame_count = 0
+        self.fps_start_timer = None
+        self.fps = None
+
+
+    def setup(self):
         self.create_particles()
 
 
     def create_particles(self):
         self.particles_list = []
-        self.direction *= -1
         # Create the particles
         for i in range(PARTICLE_COUNT):
-            # Create a new particle and push it into the array
-            self.particles_list.append(Particle(self.direction))
+            # Create a new particle 9they are self aware of where they are in the world
+            #  and push it into the array
+            self.particles_list.append(Particle())
 
 
     def render_particles(self):
@@ -154,25 +183,54 @@ class MyGame(arcade.Window):
             particle.draw()
 
 
-    def on_draw(self):
-        """
-        Render the screen.
-        """
-        # This command has to happen before we start drawing
-        arcade.start_render()
-        # now draw out little particles
-        self.render_particles()
+    def change_particle_direction(self):
+        for particle in self.particles_list:
+            particle.change_direction()
 
 
     def on_update(self, delta_time):
         """ Movement and game logic """
+        start_time = timeit.default_timer()
+        if self.frame_count % 60 == 0:
+            if self.fps_start_timer is not None:
+                total_time = timeit.default_timer() - self.fps_start_timer
+                self.fps = 60 / total_time
+            self.fps_start_timer = timeit.default_timer()
+        self.frame_count += 1
         # update the movement of each particle
         for particle in self.particles_list:
             particle.move()
+        self.processing_time = timeit.default_timer() - start_time
+
+
+    def on_draw(self):
+        """
+        Render the screen.
+        """
+        # Start timing how long this takes
+        draw_start_time = timeit.default_timer()
+        # This command has to happen before we start drawing
+        arcade.start_render()
+        # now draw out little particles
+        self.render_particles()
+        # Display timings
+        output = f"Processing time: {self.processing_time:.3f}"
+        arcade.draw_text(output, 20, SCREEN_HEIGHT - 20, arcade.color.WHITE, 16)
+
+        output = f"Drawing time: {self.draw_time:.3f}"
+        arcade.draw_text(output, 20, SCREEN_HEIGHT - 40, arcade.color.WHITE, 16)
+
+        if self.fps is not None:
+            output = f"FPS: {self.fps:.0f}"
+            arcade.draw_text(output, 20, SCREEN_HEIGHT - 60, arcade.color.WHITE, 16)
+
+        self.draw_time = timeit.default_timer() - draw_start_time
 
 
     def on_mouse_press(self, x, y, button, modifiers):
-        self.create_particles()
+        self.change_particle_direction()
+        # self.create_particles()
+
     #     """
     #     Called when the user presses a mouse button.
     #     """
@@ -197,7 +255,8 @@ class MyGame(arcade.Window):
 
 
 def main():
-    MyGame(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+    window = MyGame(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+    window.setup()
     arcade.run()
 
 
