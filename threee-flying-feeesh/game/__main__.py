@@ -25,7 +25,7 @@ SCREEN_HEIGHT = 600
 SCREEN_TITLE = "Threee Flying Feeesh presents Teeetris"
 GLOBE_RADIUS = (SCREEN_WIDTH * ( 1/3 ))
 PARTICLE_RADIUS = 10
-PARTICLE_COUNT = 300
+PARTICLE_COUNT = 100
 SPEED = 0.1
 
 PERSPECTIVE = SCREEN_WIDTH * 0.8 # The field of view of our 3D scene
@@ -223,6 +223,8 @@ class MyGame(arcade.Window):
         if self.fps is not None:
             output = f"FPS: {self.fps:.0f}"
             arcade.draw_text(output, 20, SCREEN_HEIGHT - 60, arcade.color.WHITE, 16)
+        output = f"Particle count: {PARTICLE_COUNT}"
+        arcade.draw_text(output, 20, SCREEN_HEIGHT - 80, arcade.color.WHITE, 16)
 
         self.draw_time = timeit.default_timer() - draw_start_time
 
