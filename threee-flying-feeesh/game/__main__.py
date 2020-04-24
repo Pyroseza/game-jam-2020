@@ -273,9 +273,12 @@ class MyGame(arcade.Window):
 
 
 def main():
-    window = MyGame(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
-    window.setup()
-    arcade.run()
+    try:
+        window = MyGame(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+        window.setup()
+        arcade.run()
+    except KeyboardInterrupt:
+        print("quitting")
 
 
 if __name__ == "__main__":
