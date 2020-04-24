@@ -9,8 +9,9 @@ If Python and Arcade are installed, this example can be run from the command lin
 python -m arcade.examples.array_backed_grid_buffered
 """
 import arcade
-import random
 import math
+import random
+import timeit
 
 # Set how many rows and columns we will have
 ROW_COUNT = 3**3
@@ -92,6 +93,13 @@ class MyGame(arcade.Window):
         Set up the application.
         """
         super().__init__(width, height, title)
+        self.particles_list = None
+        # some interesting debugging stuff
+        self.processing_time = 0
+        self.draw_time = 0
+        self.frame_count = 0
+        self.fps_start_timer = None
+        self.fps = None
         self.direction = 1
         self.create_particles()
 
@@ -118,22 +126,60 @@ class MyGame(arcade.Window):
             particle.draw()
 
 
+    def change_particle_direction(self):
+        for particle in self.particles_list:
+            particle.change_direction()
+
+
+    def on_update(self, delta_time):
+        """ Movement and game logic """
+        start_time = timeit.default_timer()
+        #if self.frame_count % 60 == 0:
+        if 1:
+            if self.fps_start_timer is not None:
+                total_time = timeit.default_timer() - self.fps_start_timer
+                self.fps = 60 / total_time
+            else:
+                print("naw")
+            self.fps_start_timer = timeit.default_timer()
+        print(self.fps)
+        self.frame_count += 1
+        # update the movement of each particle
+        for particle in self.particles_list:
+            particle.move()
+        self.processing_time = timeit.default_timer() - start_time
+
+
     def on_draw(self):
         """
         Render the screen.
         """
+        # Start timing how long this takes
+        draw_start_time = timeit.default_timer()
         # This command has to happen before we start drawing
         arcade.start_render()
         # now draw out little particles
         self.render_particles()
+        # Display timings
+        output = f"Processing time: {self.processing_time:.3f}"
+        arcade.draw_text(output, 20, SCREEN_HEIGHT - 20, arcade.color.WHITE, 16)
 
+        output = f"Drawing time: {self.draw_time:.3f}"
+        arcade.draw_text(output, 20, SCREEN_HEIGHT - 40, arcade.color.WHITE, 16)
+
+        if self.fps is not None:
+            output = f"FPS: {self.fps:.0f}"
+            arcade.draw_text(output, 20, SCREEN_HEIGHT - 60, arcade.color.WHITE, 16)
+        output = f"Particle count: {PARTICLE_COUNT}"
+        arcade.draw_text(output, 20, SCREEN_HEIGHT - 80, arcade.color.WHITE, 16)
+
+        self.draw_time = timeit.default_timer() - draw_start_time
 
     def on_update(self, delta_time):
         """ Movement and game logic """
         # update the movement of each particle
         for particle in self.particles_list:
             particle.move()
-
 
     def on_mouse_press(self, x, y, button, modifiers):
         self.create_particles()
@@ -161,7 +207,7 @@ class MyGame(arcade.Window):
 
 
 def main():
-    MyGame(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+    window = MyGame(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
     arcade.run()
 
 
