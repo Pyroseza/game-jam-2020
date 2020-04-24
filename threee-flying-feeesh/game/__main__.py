@@ -126,10 +126,8 @@ class Particle(Shape):
 
 
     def draw_particle(self, x, y, w, h, c, a):
-        #self.shape_list = None
+        #shine = (3**5, 3**5, 3**5, self.alpha)
         self.shape = arcade.draw_ellipse_filled(x, y, w, h, c, a, num_segments=60)
-        #self.shape_list = arcade.ShapeElementList()
-        #self.shape_list.append(self.shape)
 
 
     # Draw the particle on the canvas
@@ -220,6 +218,15 @@ class MyGame(arcade.Window):
         draw_start_time = timeit.default_timer()
         # This command has to happen before we start drawing
         arcade.start_render()
+        c1 = (0, 255, 0)
+        c2 = (0, 0, 0)
+        self.shape = arcade.create_ellipse_filled_with_colors(PROJECTION_CENTER_X,
+                        PROJECTION_CENTER_Y,
+                        PERSPECTIVE / 3,
+                        PERSPECTIVE / 3,
+                        inside_color=c1, outside_color=c2,
+                        tilt_angle=45, num_segments=60)
+        self.shape.draw()
         # now draw out little particles
         self.render_particles()
         # Display timings
