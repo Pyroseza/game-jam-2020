@@ -1,12 +1,5 @@
 """
-Teeetris - based off Array Backed Grid example from Arcade website
-https://arcade.academy/examples/array_backed_grid_buffered.html#array-backed-grid-buffered
-
-Show how to use a two-dimensional list/array to back the display of a
-grid on-screen.
-
-If Python and Arcade are installed, this example can be run from the command line with:
-python -m arcade.examples.array_backed_grid_buffered
+Threee Deee Whack-a-Dot!
 """
 import arcade
 import math
@@ -18,7 +11,7 @@ ROW_COUNT = 3**3
 COLUMN_COUNT = 3**3
 
 # Do the math to figure out our screen dimensions
-SCREEN_WIDTH = 800
+SCREEN_WIDTH = 900
 SCREEN_HEIGHT = 600
 
 
@@ -31,7 +24,6 @@ SPEED = 0.1
 PERSPECTIVE = SCREEN_WIDTH * 0.8 # The field of view of our 3D scene
 PROJECTION_CENTER_X = SCREEN_WIDTH * 0.5 # x center of the canvas
 PROJECTION_CENTER_Y = SCREEN_HEIGHT * 0.5 # y center of the canvas
-particles = [] # Store every "particle" in this array
 
 
 class Shape:
@@ -86,6 +78,10 @@ class Particle(Shape):
                                              self.width, self.height,
                                              self.color, self.angle,
                                              num_segments=60)
+        #shape = arcade.create_ellipse_filled(0, 0,
+        #                                     self.width, self.height,
+        #                                     self.color, self.angle,
+        #                                     num_segments=60)
         self.shape_list = arcade.ShapeElementList()
         self.shape_list.append(shape)
         # enough of the generic stuff let's get freaky
@@ -122,6 +118,18 @@ class Particle(Shape):
     def move(self):
         # self.theta = self.theta + math.pi * 2
         self.theta += (SPEED * self.direction * random.random())
+        # We first calculate the projected values of our particle
+        self.project();
+        # We define the opacity of our element based on its distance
+        self.alpha = abs(1 - self.z / SCREEN_WIDTH)
+        # We draw a the particle based on the projected coordinates and scale
+
+
+    def draw_particle(self, x, y, w, h, c, a):
+        #self.shape_list = None
+        self.shape = arcade.draw_ellipse_filled(x, y, w, h, c, a, num_segments=60)
+        #self.shape_list = arcade.ShapeElementList()
+        #self.shape_list.append(self.shape)
 
 
     # Draw the particle on the canvas
@@ -131,17 +139,18 @@ class Particle(Shape):
         # We define the opacity of our element based on its distance
         self.alpha = abs(1 - self.z / SCREEN_WIDTH)
         # We draw a rectangle based on the projected coordinates and scale
-        arcade.draw_rectangle_filled(self.x_projected - self.radius,
-                                        self.y_projected - self.radius,
-                                        self.radius * 2 * self.scale_projected,
-                                        self.radius * 2 * self.scale_projected,
-                                        self.colour)
+        self.draw_particle(self.x_projected - self.radius,
+                           self.y_projected - self.radius,
+                           self.radius * 2 * self.scale_projected,
+                           self.radius * 2 * self.scale_projected,
+                           self.colour, 45)
 
 
 class MyGame(arcade.Window):
     """
     Main application class.
     """
+
 
     def __init__(self, width, height, title):
         """
@@ -165,7 +174,7 @@ class MyGame(arcade.Window):
         self.particles_list = []
         # Create the particles
         for i in range(PARTICLE_COUNT):
-            # Create a new particle 9they are self aware of where they are in the world
+            # Create a new particle, they are self aware of where they are in the world
             #  and push it into the array
             self.particles_list.append(Particle())
 
